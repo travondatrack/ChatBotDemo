@@ -2,11 +2,22 @@ from flask import Flask, request, jsonify, send_from_directory
 import requests
 import os
 import json
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 
-# Move API key to environment variable for security
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAzlf_7PgIL5LwjoOv_EEhULlFW9oFUYyw")
+# Get API key from environment variable only - no fallback
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+# Validate API key exists
+if not GEMINI_API_KEY:
+    print("ERROR: GEMINI_API_KEY environment variable not set!")
+    print("Please set your API key in environment variable or .env file")
+    exit(1)
+
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 
 @app.route("/")
@@ -35,10 +46,6 @@ def chat():
         user_input = data.get("message", "").strip()
         if not user_input:
             return jsonify({"error": "No message provided"}), 400
-
-        # Validate API key
-        if not GEMINI_API_KEY or GEMINI_API_KEY == "your-api-key-here":
-            return jsonify({"error": "API key not configured"}), 500
 
         payload = {
             "contents": [
@@ -163,5 +170,5 @@ def internal_error(error):
 
 if __name__ == "__main__":
     print("Starting Flask app...")
-    print(f"API Key configured: {'Yes' if GEMINI_API_KEY and GEMINI_API_KEY != 'your-api-key-here' else 'No'}")
+    print("API Key configured: Yes")
     app.run(debug=True, host='0.0.0.0', port=5000)
