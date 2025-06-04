@@ -2,21 +2,13 @@ from flask import Flask, request, jsonify, send_from_directory
 import requests
 import os
 import json
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 app = Flask(__name__)
 
-# Get API key from environment variable only - no fallback
+# API key chỉ lấy từ biến môi trường, không có giá trị mặc định
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-# Validate API key exists
 if not GEMINI_API_KEY:
-    print("ERROR: GEMINI_API_KEY environment variable not set!")
-    print("Please set your API key in environment variable or .env file")
-    exit(1)
+    raise EnvironmentError("GEMINI_API_KEY environment variable not set")
 
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 
@@ -35,7 +27,6 @@ def script():
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
-        # Validate request
         if not request.is_json:
             return jsonify({"error": "Request must be JSON"}), 400
         
@@ -67,27 +58,18 @@ def chat():
             ]
         }
 
-        headers = {
-            "Content-Type": "application/json"
-        }
+        headers = {"Content-Type": "application/json"}
 
         print(f"Sending request to Gemini API: {user_input[:100]}...")
         
-        response = requests.post(
-            GEMINI_URL, 
-            json=payload, 
-            headers=headers, 
-            timeout=30
-        )
-        
+        response = requests.post(GEMINI_URL, json=payload, headers=headers, timeout=30)
         print(f"Gemini API response status: {response.status_code}")
         
         if response.status_code == 200:
             try:
                 data = response.json()
                 print(f"Gemini API response data: {json.dumps(data, indent=2)}")
-                
-                # Check if response has the expected structure
+
                 if "candidates" in data and len(data["candidates"]) > 0:
                     candidate = data["candidates"][0]
                     if "content" in candidate and "parts" in candidate["content"]:
@@ -102,25 +84,21 @@ def chat():
                     else:
                         return jsonify({"error": "Invalid content structure"}), 500
                 else:
-                    # Check for blocked content
                     if "candidates" in data and len(data["candidates"]) > 0:
-                        candidate = data["candidates"][0]
-                        if "finishReason" in candidate:
-                            reason = candidate["finishReason"]
-                            if reason == "SAFETY":
-                                return jsonify({"error": "Content was blocked due to safety concerns"}), 400
-                            elif reason == "RECITATION":
-                                return jsonify({"error": "Content was blocked due to recitation"}), 400
-                    
+                        reason = data["candidates"][0].get("finishReason", "")
+                        if reason == "SAFETY":
+                            return jsonify({"error": "Content was blocked due to safety concerns"}), 400
+                        elif reason == "RECITATION":
+                            return jsonify({"error": "Content was blocked due to recitation"}), 400
+
                     return jsonify({
-                        "error": "Unexpected response format", 
+                        "error": "Unexpected response format",
                         "raw": data
                     }), 500
                     
             except json.JSONDecodeError as e:
-                print(f"JSON decode error: {e}")
                 return jsonify({
-                    "error": "Invalid JSON response from API", 
+                    "error": "Invalid JSON response from API",
                     "details": str(e),
                     "raw_response": response.text[:500]
                 }), 500
@@ -132,7 +110,7 @@ def chat():
                 return jsonify({"error": f"API Error: {error_msg}"}), 400
             except:
                 return jsonify({
-                    "error": "Bad request to API", 
+                    "error": "Bad request to API",
                     "details": response.text[:200]
                 }), 400
                 
@@ -143,9 +121,8 @@ def chat():
             return jsonify({"error": "Rate limit exceeded. Please try again later"}), 429
             
         else:
-            print(f"API error response: {response.text}")
             return jsonify({
-                "error": f"API returned status {response.status_code}", 
+                "error": f"API returned status {response.status_code}",
                 "details": response.text[:200]
             }), 500
     
@@ -154,10 +131,8 @@ def chat():
     except requests.exceptions.ConnectionError:
         return jsonify({"error": "Connection error. Please check your internet"}), 503
     except requests.exceptions.RequestException as e:
-        print(f"Request error: {e}")
         return jsonify({"error": "Network error", "details": str(e)}), 503
     except Exception as e:
-        print(f"Unexpected error: {e}")
         return jsonify({"error": "Server error", "details": str(e)}), 500
 
 @app.errorhandler(404)
@@ -170,5 +145,5 @@ def internal_error(error):
 
 if __name__ == "__main__":
     print("Starting Flask app...")
-    print("API Key configured: Yes")
+    print(f"API Key configured: {'Yes' if GEMINI_API_KEY else 'No'}")
     app.run(debug=True, host='0.0.0.0', port=5000)
