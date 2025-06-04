@@ -164,4 +164,4 @@ def internal_error(error):
 if __name__ == "__main__":
     print("Starting Flask app...")
     print(f"API Key configured: {'Yes' if GEMINI_API_KEY and GEMINI_API_KEY != 'your-api-key-here' else 'No'}")
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)
