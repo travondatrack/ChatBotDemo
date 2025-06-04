@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini Chatbot</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h2>
+        <i class="fas fa-robot"></i>
+        Gemini Chatbot
+      </h2>
+      <div class="status" id="status">Sẵn sàng trò chuyện</div>
+      <div class="controls">
+        <button id="clearBtn" class="control-btn" title="Xóa cuộc trò chuyện">
+          <i class="fas fa-trash"></i>
+        </button>
+        <button id="exportBtn" class="control-btn" title="Xuất cuộc trò chuyện">
+          <i class="fas fa-download"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div id="chatbox">
+      <div class="empty-state">
+        <i class="fas fa-comments"></i>
+        <h3>Chào mừng bạn!</h3>
+        <p>Hãy bắt đầu cuộc trò chuyện với Gemini AI</p>
+      </div>
+    </div>
+    
+    <div class="chat-input">
+      <div class="input-group">
+        <button id="attachBtn" class="attach-btn" title="Đính kèm file">
+          <i class="fas fa-paperclip"></i>
+        </button>
+        <input type="text" id="message" placeholder="Nhập tin nhắn của bạn..." />
+        <button id="voiceBtn" class="voice-btn" title="Ghi âm">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <button id="sendBtn">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+      <input type="file" id="fileInput" accept="image/*,.txt,.pdf,.doc,.docx" style="display: none;">
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
